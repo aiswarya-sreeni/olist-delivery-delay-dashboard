@@ -71,3 +71,56 @@ category_delays = df_full.groupby('product_category_name')['true_delay'].mean().
 
 # Render a beautiful interactive bar chart directly on the dashboard page!
 st.bar_chart(category_delays)
+
+# ==========================================
+# 🚀 NEW INTERACTIVE INSIGHTS 
+# ==========================================
+
+st.markdown("---") # Adds a clean separating line
+st.header("🎛️ Interactive Deep-Dive Explorer")
+
+# 1. Slider Component
+st.subheader("⏳ Custom Delay Threshold Analysis")
+cutoff_days = st.slider(
+    "Select a minimum threshold of delay days:", 
+    min_value=1, 
+    max_value=30, 
+    value=5,
+    help="Slide to see how many packages experienced severe delays past this number of days."
+)
+
+# Calculate shipments crossing the user's slider choice
+severe_delays = df[df['delay_days'] >= cutoff_days]
+severe_count = len(severe_delays)
+severe_percentage = (severe_count / total_packages) * 100
+
+st.info(
+    f"📦 **{severe_count:,} shipments** ({severe_percentage:.2f}% of all orders) "
+    f"were delayed by **{cutoff_days} days or more**."
+)
+
+
+# 2. Dropdown Filter + Review Distribution Chart
+st.subheader("⭐ Review Score Distribution Lookup")
+st.write("See the exact count of star ratings based on shipment status:")
+
+# Dropdown box selector
+delivery_filter = st.selectbox(
+    "Choose a shipment delivery status to inspect:",
+    options=["Show All Shipments", "On-Time Deliveries Only", "Delayed Deliveries Only"]
+)
+
+# Filter the data frame based on user selection
+if delivery_filter == "On-Time Deliveries Only":
+    filtered_df = df[df['is_delayed'] == False]
+elif delivery_filter == "Delayed Deliveries Only":
+    filtered_df = df[df['is_delayed'] == True]
+else:
+    filtered_df = df
+
+# Count how many of each star rating exists (1, 2, 3, 4, 5 stars)
+review_counts = filtered_df['review_score'].value_counts().sort_index()
+
+# Render an interactive bar chart of star distributions
+st.bar_chart(review_counts)
+st.caption("💡 Notice how 1-star reviews spike dramatically when you switch the dropdown to 'Delayed Deliveries Only'!")
